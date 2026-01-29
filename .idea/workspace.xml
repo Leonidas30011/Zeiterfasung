@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a0fc39f1-018c-4c78-95bd-c3770b7cfd85" name="Changes" comment="Projekt anlegen steht">
+    <list default="true" id="a0fc39f1-018c-4c78-95bd-c3770b7cfd85" name="Changes" comment="Nachträgliche erfassung">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -88,7 +88,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1769687476487</updated>
-      <workItem from="1769687477785" duration="21666000" />
+      <workItem from="1769687477785" duration="24647000" />
     </task>
     <task id="LOCAL-00001" summary="Projekt anlegen steht">
       <option name="closed" value="true" />
@@ -98,7 +98,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769705647207</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Nachträgliche erfassung">
+      <option name="closed" value="true" />
+      <created>1769710687656</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1769710687656</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -117,9 +125,10 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Projekt anlegen steht" />
-    <option name="LAST_COMMIT_MESSAGE" value="Projekt anlegen steht" />
+    <MESSAGE value="Nachträgliche erfassung" />
+    <option name="LAST_COMMIT_MESSAGE" value="Nachträgliche erfassung" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Stempeluhr$main.coverage" NAME="main Coverage Results" MODIFIED="1769710378231" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stempeluhr$main.coverage" NAME="main Coverage Results" MODIFIED="1769713368905" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

@@ -13,6 +13,14 @@ def sql_commit(sql):
 	verbindung.commit()
 	verbindung.close()
 
+def sql_commit2(sql, params=()):
+	conn = sqlite3.connect("datenbank/Zeiterfassung.db")
+	cur = conn.cursor()
+	cur.execute(sql, params)
+	conn.commit()
+	conn.close()
+
+
 def sql_select(sql):
 	verbindung = sqlite3.connect( "datenbank/Zeiterfassung.db" )
 	zeiger = verbindung.cursor()
@@ -86,16 +94,31 @@ def Projekt_Anlegen():
 		entry.pack(pady=10)
 	lbox.pack( pady = 10 )
 
-def Zeit_Nachtraeglich_erfassen():
-	def buchen(projekt_name, person_name, in_zeit_h,in_date, in_zeit_m, out_date, out_zeit_h, out_zeit_m):
-		in_zeit = in_zeit_h + ":" + in_zeit_m
-		out_zeit = out_zeit_h + ":" + out_zeit_m
 
-		sql_str = "INSERT INTO buchungen (projekt_id, person_id, einstempelzeit, ausstempelzeit) VALUES ((select id from projekte where name = '" + projekt_name + "'), (SELECT id from personen where name = '" + person_name + "'),'2023-01-01 12:00:00','2023-01-02 12:00:00');"
+
+def Zeit_Nachtraeglich_erfassen():
+	def Buchen(projekt_name, person_name):
+		print(in_cal.get_date())
+		in_complete = str(in_cal.get_date()) + " " + str(in_time_h.get()) + ":" + str(in_time_m.get())
+		out_complete = str(out_cal.get_date()) + " " + str(out_time_h.get()) + ":" + str(out_time_m.get())
+
+		sql_str = "INSERT INTO buchungen (projekt_id, person_id, einstempelzeit, ausstempelzeit) VALUES ((select id from projekte where name = '" + projekt_name + "'), (SELECT id from personen where name = '" + person_name + "'),'" + in_complete + "','" + out_complete +"');"
 
 		sql_commit(sql_str)
 
-		pass
+	def Buchen2( projekt_name, person_name ):
+		in_complete = f"{in_cal.get_date()} {int( in_time_h.get() ):02d}:{int( in_time_m.get() ):02d}:00"
+		out_complete = f"{out_cal.get_date()} {int( out_time_h.get() ):02d}:{int( out_time_m.get() ):02d}:00"
+
+		sql = """
+              INSERT INTO buchungen (projekt_id, person_id, einstempelzeit, ausstempelzeit)
+              VALUES ((SELECT id FROM projekte WHERE name = ?), \
+                      (SELECT id FROM personen WHERE name = ?), \
+                      ?, \
+                      ?); \
+		      """
+
+		sql_commit2( sql, (projekt_name, person_name, in_complete, out_complete) )
 
 	zeit_nachtraeglich_erfassen = tk.Toplevel()
 	zeit_nachtraeglich_erfassen.title( "Stempeluhr - Zeit nachträglich erfassen" )
@@ -104,44 +127,55 @@ def Zeit_Nachtraeglich_erfassen():
 	zeit_nachtraeglich_erfassen.configure( bg = "black" )
 	zeit_nachtraeglich_erfassen.iconbitmap( "src/sanduhr.ico" )
 
-	label_projekt_name = tk.Label(zeit_nachtraeglich_erfassen, text = "Projekt Name: ").pack( pady = 10 )
+	label_projekt_name = tk.Label(zeit_nachtraeglich_erfassen, text = "Projekt Name: ")
+	label_projekt_name.pack( pady = 10 )
 	var_projekt_name = tk.StringVar()
-	entry_projekt_name = tk.OptionMenu( zeit_nachtraeglich_erfassen, var_projekt_name, "",*sql_select( "SELECT name FROM projekte;" ) ).pack( pady = 10 )
+	values_projekt_name = [row[0] for row in sql_select( "SELECT name FROM projekte;" )]
+	entry_projekt_name = tk.OptionMenu( zeit_nachtraeglich_erfassen, var_projekt_name, "",*values_projekt_name  )
+	entry_projekt_name.pack( pady = 10 )
 
-	label_person_name = tk.Label(zeit_nachtraeglich_erfassen, text = "Person Name: ").pack( pady = 10 )
+	label_person_name = tk.Label(zeit_nachtraeglich_erfassen, text = "Person Name: ")
+	label_person_name.pack( pady = 10 )
 	var_person_name = tk.StringVar()
-	entry_projekt_name = tk.OptionMenu( zeit_nachtraeglich_erfassen, var_projekt_name, "",*sql_select( "SELECT name FROM personen;" )).pack( pady = 10 )
+	values_person_name = [ row[ 0 ] for row in sql_select( "SELECT name FROM personen;" ) ]
+	entry_projekt_name = tk.OptionMenu( zeit_nachtraeglich_erfassen, var_person_name, "",*values_person_name)
+	entry_projekt_name.pack( pady = 10 )
 
-	cal = DateEntry( zeit_nachtraeglich_erfassen, width = 10, background = "black", foreground = "white" ).pack( pady = 10 )
+	in_cal = DateEntry( zeit_nachtraeglich_erfassen, width = 14, background = "black", foreground = "white", date_pattern= 'yyyy.mm.dd')
+	in_cal.pack( pady = 10 )
 
-	Stunden = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
-	in_time_h = tk.Listbox( zeit_nachtraeglich_erfassen)
-	in_time_h.insert( tk.END, *Stunden )
-	Minuten = [0,5,10,15,20,25,30,35,40,45,50,55]
-	in_time_m = tk.Listbox( zeit_nachtraeglich_erfassen)
-	in_time_m.insert( tk.END, *Minuten )
+	Stunden = ["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"]
+	in_time_h = tk.StringVar()
+	menu_in_time_h = tk.OptionMenu( zeit_nachtraeglich_erfassen,  in_time_h, "",*Stunden)
 
-	label_in_zeit_h = tk.Label(zeit_nachtraeglich_erfassen, text = "Stunden: ").pack( pady = 10 )
-	in_zeit_h = tk.StringVar()
-	in_zeit_m = tk.StringVar()
-	entry_in_zeit_h = tk.Spinbox(zeit_nachtraeglich_erfassen, from_ =  0, to = 23, increment=1, textvariable = in_zeit_h).pack( pady = 10 )
-	label_in_zeit_m = tk.Label( zeit_nachtraeglich_erfassen, text = "Minuten: " ).pack( pady = 10 )
-	entry_in_zeit_m = tk.Spinbox( zeit_nachtraeglich_erfassen, from_ = 0, to = 60, increment = 1, textvariable = in_zeit_m).pack( pady = 10 )
+	Minuten = ["00","05",10,15,20,25,30,35,40,45,50,55]
+	in_time_m = tk.StringVar()
+	menu_in_time_m = tk.OptionMenu( zeit_nachtraeglich_erfassen, in_time_m, "", *Minuten)
 
-	label_out_zeit_h = tk.Label( zeit_nachtraeglich_erfassen, text = "Stunden: " ).pack( pady = 10 )
-	out_zeit_h = tk.StringVar()
-	out_zeit_m = tk.StringVar()
-	entry_out_zeit_h = tk.Spinbox( zeit_nachtraeglich_erfassen, from_ = 0, to = 23, increment = 1, textvariable = out_zeit_h ).pack( pady = 10 )
-	label_out_zeit_m = tk.Label( zeit_nachtraeglich_erfassen, text = "Minuten: " ).pack( pady = 10 )
-	entry_out_zeit_m = tk.Spinbox( zeit_nachtraeglich_erfassen, from_ = 0, to = 60, increment = 1, textvariable = out_zeit_m ).pack( pady = 10 )
+	menu_in_time_h.pack( pady = 10 )
+	menu_in_time_m.pack( pady = 10 )
 
-	buchen = tk.Button(zeit_nachtraeglich_erfassen, text= "Zeit Buchen", command= lambda:buchen(var_projekt_name.get(), var_person_name.get(), in_zeit_h.get(), in_zeit_m.get(), out_zeit_h.get(), out_zeit_m.get()))
+	out_cal = DateEntry( zeit_nachtraeglich_erfassen, width = 12, background = "darkblue", foreground = "white", date_pattern= 'yyyy.mm.dd')
+	out_cal.pack(pady = 10 )
+	out_time_h = tk.StringVar()
+	menu_out_time_h = tk.OptionMenu( zeit_nachtraeglich_erfassen, out_time_h, "", *Stunden )
+
+	out_time_m = tk.StringVar()
+	menu_out_time_m = tk.OptionMenu( zeit_nachtraeglich_erfassen, out_time_m, "", *Minuten )
+
+	menu_out_time_h.pack( pady = 10 )
+	menu_out_time_m.pack( pady = 10 )
+
+
+
+	buchen = tk.Button(zeit_nachtraeglich_erfassen, text= "Zeit Buchen", command= lambda:Buchen2(var_projekt_name.get(), var_person_name.get()))
 
 	zurueck = tk.Button( zeit_nachtraeglich_erfassen, text = "Zurück", command = lambda: zeit_nachtraeglich_erfassen.destroy() )
 
 	buttons_zeit_nachtraeglich_erfassen = [ buchen, zurueck ]
 	for button in buttons_zeit_nachtraeglich_erfassen:
 		button.pack( pady = 10 )
+
 
 
 
