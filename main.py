@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkcalendar import DateEntry
 from tkinter import ttk
 
 import sqlite3
@@ -27,7 +28,7 @@ def Projekt_Anlegen():
 			lbox.insert(tk.END, projekte2)
 
 	def ANLEGEN(name2):
-		if name_var is not "":
+		if name_var != "":
 			sql_str = "INSERT INTO projekte (name) VALUES ( '" + name2 + "');"
 			sql_commit(sql_str)
 			entrys_projekt_anlegen[0].delete(0, tk.END)
@@ -86,18 +87,63 @@ def Projekt_Anlegen():
 	lbox.pack( pady = 10 )
 
 def Zeit_Nachtraeglich_erfassen():
+	def buchen(projekt_name, person_name, in_zeit_h,in_date, in_zeit_m, out_date, out_zeit_h, out_zeit_m):
+		in_zeit = in_zeit_h + ":" + in_zeit_m
+		out_zeit = out_zeit_h + ":" + out_zeit_m
+
+		sql_str = "INSERT INTO buchungen (projekt_id, person_id, einstempelzeit, ausstempelzeit) VALUES ((select id from projekte where name = '" + projekt_name + "'), (SELECT id from personen where name = '" + person_name + "'),'2023-01-01 12:00:00','2023-01-02 12:00:00');"
+
+		sql_commit(sql_str)
+
+		pass
+
 	zeit_nachtraeglich_erfassen = tk.Toplevel()
 	zeit_nachtraeglich_erfassen.title( "Stempeluhr - Zeit nachträglich erfassen" )
-	zeit_nachtraeglich_erfassen.geometry( "400x400" )
+	zeit_nachtraeglich_erfassen.geometry( "400x600" )
 	zeit_nachtraeglich_erfassen.resizable( False, False )
 	zeit_nachtraeglich_erfassen.configure( bg = "black" )
 	zeit_nachtraeglich_erfassen.iconbitmap( "src/sanduhr.ico" )
 
+	label_projekt_name = tk.Label(zeit_nachtraeglich_erfassen, text = "Projekt Name: ").pack( pady = 10 )
+	var_projekt_name = tk.StringVar()
+	entry_projekt_name = tk.OptionMenu( zeit_nachtraeglich_erfassen, var_projekt_name, "",*sql_select( "SELECT name FROM projekte;" ) ).pack( pady = 10 )
+
+	label_person_name = tk.Label(zeit_nachtraeglich_erfassen, text = "Person Name: ").pack( pady = 10 )
+	var_person_name = tk.StringVar()
+	entry_projekt_name = tk.OptionMenu( zeit_nachtraeglich_erfassen, var_projekt_name, "",*sql_select( "SELECT name FROM personen;" )).pack( pady = 10 )
+
+	cal = DateEntry( zeit_nachtraeglich_erfassen, width = 10, background = "black", foreground = "white" ).pack( pady = 10 )
+
+	Stunden = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+	in_time_h = tk.Listbox( zeit_nachtraeglich_erfassen)
+	in_time_h.insert( tk.END, *Stunden )
+	Minuten = [0,5,10,15,20,25,30,35,40,45,50,55]
+	in_time_m = tk.Listbox( zeit_nachtraeglich_erfassen)
+	in_time_m.insert( tk.END, *Minuten )
+
+	label_in_zeit_h = tk.Label(zeit_nachtraeglich_erfassen, text = "Stunden: ").pack( pady = 10 )
+	in_zeit_h = tk.StringVar()
+	in_zeit_m = tk.StringVar()
+	entry_in_zeit_h = tk.Spinbox(zeit_nachtraeglich_erfassen, from_ =  0, to = 23, increment=1, textvariable = in_zeit_h).pack( pady = 10 )
+	label_in_zeit_m = tk.Label( zeit_nachtraeglich_erfassen, text = "Minuten: " ).pack( pady = 10 )
+	entry_in_zeit_m = tk.Spinbox( zeit_nachtraeglich_erfassen, from_ = 0, to = 60, increment = 1, textvariable = in_zeit_m).pack( pady = 10 )
+
+	label_out_zeit_h = tk.Label( zeit_nachtraeglich_erfassen, text = "Stunden: " ).pack( pady = 10 )
+	out_zeit_h = tk.StringVar()
+	out_zeit_m = tk.StringVar()
+	entry_out_zeit_h = tk.Spinbox( zeit_nachtraeglich_erfassen, from_ = 0, to = 23, increment = 1, textvariable = out_zeit_h ).pack( pady = 10 )
+	label_out_zeit_m = tk.Label( zeit_nachtraeglich_erfassen, text = "Minuten: " ).pack( pady = 10 )
+	entry_out_zeit_m = tk.Spinbox( zeit_nachtraeglich_erfassen, from_ = 0, to = 60, increment = 1, textvariable = out_zeit_m ).pack( pady = 10 )
+
+	buchen = tk.Button(zeit_nachtraeglich_erfassen, text= "Zeit Buchen", command= lambda:buchen(var_projekt_name.get(), var_person_name.get(), in_zeit_h.get(), in_zeit_m.get(), out_zeit_h.get(), out_zeit_m.get()))
+
 	zurueck = tk.Button( zeit_nachtraeglich_erfassen, text = "Zurück", command = lambda: zeit_nachtraeglich_erfassen.destroy() )
 
-	buttons_zeit_nachtraeglich_erfassen = [ zurueck ]
+	buttons_zeit_nachtraeglich_erfassen = [ buchen, zurueck ]
 	for button in buttons_zeit_nachtraeglich_erfassen:
 		button.pack( pady = 10 )
+
+
 
 def Einstempeln():
 	einstempeln = tk.Toplevel()
