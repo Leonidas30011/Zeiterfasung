@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkcalendar import DateEntry
+from datetime import date
 from tkinter import ttk
-
 import sqlite3
-import os
+
 
 def sql_commit(sql):
 	verbindung = sqlite3.connect( "datenbank/Zeiterfassung.db" )
@@ -97,28 +97,42 @@ def Projekt_Anlegen():
 
 
 def Zeit_Nachtraeglich_erfassen():
-	def Buchen(projekt_name, person_name):
-		print(in_cal.get_date())
-		in_complete = str(in_cal.get_date()) + " " + str(in_time_h.get()) + ":" + str(in_time_m.get())
-		out_complete = str(out_cal.get_date()) + " " + str(out_time_h.get()) + ":" + str(out_time_m.get())
+	def Buchen( projekt_name, person_name ):
+		if projekt_name == "" or person_name == "" or in_time_h.get() == "" or in_time_m.get() == "" or out_time_h.get() == "" or out_time_m.get() == "":
+			messagebox.showinfo("Buchen nicht möglich!", "Buchen nicht möglich, fülle alle Felder aus!")
+		else:
+			in_complete = f"{in_cal.get_date()} {int( in_time_h.get() ):02d}:{int( in_time_m.get() ):02d}:00"
+			out_complete = f"{out_cal.get_date()} {int( out_time_h.get() ):02d}:{int( out_time_m.get() ):02d}:00"
 
-		sql_str = "INSERT INTO buchungen (projekt_id, person_id, einstempelzeit, ausstempelzeit) VALUES ((select id from projekte where name = '" + projekt_name + "'), (SELECT id from personen where name = '" + person_name + "'),'" + in_complete + "','" + out_complete +"');"
+			answer = messagebox.askyesno( "Wirklich Buchen für" + projekt_name +" ?",
+			                              "Wollen sie wirklich die Zeit von " + in_complete + " bis " + out_complete + " für das Projekt " + projekt_name + "für " + person_name + " buchen?" )
+			projekt_anlegen.focus_set()
+			if answer:
 
-		sql_commit(sql_str)
+				sql = """
+		              INSERT INTO buchungen (projekt_id, person_id, einstempelzeit, ausstempelzeit)
+		              VALUES ((SELECT id FROM projekte WHERE name = ?), \
+		                      (SELECT id FROM personen WHERE name = ?), \
+		                      ?, \
+		                      ?); \
+				      """
 
-	def Buchen2( projekt_name, person_name ):
-		in_complete = f"{in_cal.get_date()} {int( in_time_h.get() ):02d}:{int( in_time_m.get() ):02d}:00"
-		out_complete = f"{out_cal.get_date()} {int( out_time_h.get() ):02d}:{int( out_time_m.get() ):02d}:00"
+				sql_commit2( sql, (projekt_name, person_name, in_complete, out_complete) )
+				reset_form()
 
-		sql = """
-              INSERT INTO buchungen (projekt_id, person_id, einstempelzeit, ausstempelzeit)
-              VALUES ((SELECT id FROM projekte WHERE name = ?), \
-                      (SELECT id FROM personen WHERE name = ?), \
-                      ?, \
-                      ?); \
-		      """
+	def reset_form():
+		# Dropdowns
+		var_projekt_name.set( "" )
+		var_person_name.set( "" )
 
-		sql_commit2( sql, (projekt_name, person_name, in_complete, out_complete) )
+		in_time_h.set( "" )
+		in_time_m.set( "" )
+		out_time_h.set( "" )
+		out_time_m.set( "" )
+
+		# Kalender auf heute setzen
+		in_cal.set_date( date.today() )
+		out_cal.set_date( date.today() )
 
 	zeit_nachtraeglich_erfassen = tk.Toplevel()
 	zeit_nachtraeglich_erfassen.title( "Stempeluhr - Zeit nachträglich erfassen" )
@@ -141,7 +155,7 @@ def Zeit_Nachtraeglich_erfassen():
 	entry_projekt_name = tk.OptionMenu( zeit_nachtraeglich_erfassen, var_person_name, "",*values_person_name)
 	entry_projekt_name.pack( pady = 10 )
 
-	in_cal = DateEntry( zeit_nachtraeglich_erfassen, width = 14, background = "black", foreground = "white", date_pattern= 'yyyy.mm.dd')
+	in_cal = DateEntry( zeit_nachtraeglich_erfassen, width = 14, background = "black", foreground = "white", date_pattern= 'dd.mm.yyyy')
 	in_cal.pack( pady = 10 )
 
 	Stunden = ["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"]
@@ -155,7 +169,7 @@ def Zeit_Nachtraeglich_erfassen():
 	menu_in_time_h.pack( pady = 10 )
 	menu_in_time_m.pack( pady = 10 )
 
-	out_cal = DateEntry( zeit_nachtraeglich_erfassen, width = 12, background = "darkblue", foreground = "white", date_pattern= 'yyyy.mm.dd')
+	out_cal = DateEntry( zeit_nachtraeglich_erfassen, width = 12, background = "darkblue", foreground = "white", date_pattern= 'dd.mm.yyyy')
 	out_cal.pack(pady = 10 )
 	out_time_h = tk.StringVar()
 	menu_out_time_h = tk.OptionMenu( zeit_nachtraeglich_erfassen, out_time_h, "", *Stunden )
@@ -168,7 +182,7 @@ def Zeit_Nachtraeglich_erfassen():
 
 
 
-	buchen = tk.Button(zeit_nachtraeglich_erfassen, text= "Zeit Buchen", command= lambda:Buchen2(var_projekt_name.get(), var_person_name.get()))
+	buchen = tk.Button(zeit_nachtraeglich_erfassen, text= "Zeit Buchen", command= lambda:Buchen(var_projekt_name.get(), var_person_name.get()))
 
 	zurueck = tk.Button( zeit_nachtraeglich_erfassen, text = "Zurück", command = lambda: zeit_nachtraeglich_erfassen.destroy() )
 
